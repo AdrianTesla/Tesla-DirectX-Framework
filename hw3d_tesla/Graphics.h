@@ -72,7 +72,6 @@ public:
 private:
 	bool imGuiEnabled = false;
 	UINT syncInterval = 0u;
-	TeslaTimer<float> ft;
 	std::string statsInfo;
 	std::string title = "Adrian Tesla DirectX Framework";
 private:
