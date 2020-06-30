@@ -53,7 +53,7 @@ public:
 	Graphics& operator = (const Graphics&) = delete;
 	~Graphics();
 public:
-	void BeginFrame(unsigned char r = 0u, unsigned char g = 0u, unsigned char b = 0u);
+	void BeginFrame(bool clear = true, Color clearColor = Color::Black);
 	void EndFrame();
 	void Clear(Color fillColor) noexcept;
 	void EnableVSync() noexcept;

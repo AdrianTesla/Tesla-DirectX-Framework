@@ -3,7 +3,7 @@
 
 Game::Game()
 	:
-	wnd(Graphics::ScreenWidth, Graphics::ScreenHeight, "Adrian Tesla DirectX Framework", 250, 250),
+	wnd(Graphics::ScreenWidth, Graphics::ScreenHeight, "Adrian Tesla DirectX Framework", 200, 200),
 	gfx(wnd.GetHwnd())
 {
 }

@@ -30,6 +30,14 @@ public:
         :
         Color((x << 24u) | col.dword)
     {}
+    static void SetRandomSeed(unsigned int seed)
+    {
+        srand(seed);
+    }
+    static Color Random()
+    {
+        return Color((unsigned char)(rand() % 255u), (unsigned char)(rand() % 255u), (unsigned char)(rand() % 255u));
+    }
 public:
     Color& operator = (Color color) noexcept
     {

@@ -235,10 +235,12 @@ Graphics::~Graphics()
 	ImGui_ImplDX11_Shutdown();
 }
 
-void Graphics::BeginFrame(unsigned char r, unsigned char g, unsigned char b)
+void Graphics::BeginFrame(bool clear, Color clearColor)
 {
-	Clear({ r,g,b });
-	
+	if (clear)
+	{
+		Clear(clearColor);
+	}
 	// We always do an ImGui NewFrame because of the useful framerate counter 
 	ImGui_ImplDX11_NewFrame();
 	ImGui_ImplWin32_NewFrame();
