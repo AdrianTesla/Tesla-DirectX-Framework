@@ -25,10 +25,11 @@
 
 Graphics::Graphics(HWND hWnd)
 	:
-	pBuffer(ScreenWidth, ScreenHeight)
+	pBuffer(ScreenWidth, ScreenHeight),
+	msr({})
 {	
 	// The graphics is initialized filling the pDevice, pContext and pSwapChain pointers.
-	// First we create configure the Swap Chain descriptor
+	// First we configure the Swap Chain descriptor, passing also the handle to the window
 	DXGI_SWAP_CHAIN_DESC swapDesc = {};
 	swapDesc.BufferDesc.Width                   = 0u;
 	swapDesc.BufferDesc.Height                  = 0u;
@@ -60,7 +61,7 @@ Graphics::Graphics(HWND hWnd)
 	// And we fill the pipi: this is the official birth of the D3D11 Device
 	GFX_THROW_INFO( D3D11CreateDeviceAndSwapChain(
 		nullptr,
-		D3D_DRIVER_TYPE_HARDWARE, // D3D_DRIVER_TYPE_WARP
+		D3D_DRIVER_TYPE_HARDWARE, // (use D3D_DRIVER_TYPE_WARP for software implementation)
 		nullptr,
 		swapCreateFlags,
 		nullptr,
@@ -74,18 +75,17 @@ Graphics::Graphics(HWND hWnd)
 	));
 
 	// In order to clear the back buffer (a texture subresource), we need a view on that (pTargetView will be filled)
-	Microsoft::WRL::ComPtr<ID3D11Resource> pBackBuffer;
-	GFX_THROW_INFO(pSwapChain->GetBuffer(0u, __uuidof(ID3D11Resource), &pBackBuffer));
+	Microsoft::WRL::ComPtr<ID3D11Texture2D> pBackBuffer;
+	GFX_THROW_INFO(pSwapChain->GetBuffer(0u, __uuidof(ID3D11Texture2D), &pBackBuffer));
 	GFX_THROW_INFO(pDevice->CreateRenderTargetView(pBackBuffer.Get(), nullptr, &pTargetView));
-	
-	// Set the render target to the backbuffer!
-	pContext->OMSetRenderTargets(1u, pTargetView.GetAddressOf(), NULL);
 
+	// Give ImGui the pDevice and the pContext pointers to allow it to draw on the screen
 	ImGui_ImplDX11_Init(pDevice.Get(), pContext.Get());
 
 	/**************************************************************/
 	/******************* SETTING THE PIPELINE *********************/
 
+	// The screen consists of a textured quad on which the pBuffer texture is applied
 	struct Vertex
 	{
 		float x;
@@ -94,7 +94,8 @@ Graphics::Graphics(HWND hWnd)
 		float v;
 	};
 
-	const Vertex vertices[] =
+	// Textured quad: two triangles that cover the screen, with proper texture coordinates
+	static constexpr Vertex vertices[] =
 	{
 		{-1.0f, 1.0f, 0.0f, 0.0f },
 		{ 1.0f, 1.0f, 1.0f, 0.0f },
@@ -105,8 +106,12 @@ Graphics::Graphics(HWND hWnd)
 		{ 1.0f,-1.0f, 1.0f, 1.0f },
 	};
 
-	Microsoft::WRL::ComPtr<ID3D11Buffer> pVertexBuffer;
+	/*****************************************************/
+	/***************** RESOURCE CREATION *****************/
 
+	/*****************************************************/
+	/************** Create the Vertex Buffer *************/
+	Microsoft::WRL::ComPtr<ID3D11Buffer> pVertexBuffer;
 	D3D11_BUFFER_DESC bd   = {};
 	bd.Usage               = D3D11_USAGE_DEFAULT;
 	bd.CPUAccessFlags      = 0u;
@@ -114,30 +119,25 @@ Graphics::Graphics(HWND hWnd)
 	bd.ByteWidth           = sizeof(vertices);
 	bd.StructureByteStride = sizeof(Vertex);
 	bd.MiscFlags           = 0u;
-
 	D3D11_SUBRESOURCE_DATA sd = {};
 	sd.pSysMem                = vertices;
-
 	GFX_THROW_INFO(pDevice->CreateBuffer(&bd, &sd, &pVertexBuffer));
-
 	UINT strides = sizeof(Vertex);
 	UINT offsets = 0u;
-	pContext->IASetVertexBuffers(0u, 1u, pVertexBuffer.GetAddressOf(), &strides, &offsets);
-
-	GFX_THROW_INFO_ONLY(pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST));
-
+	
+	/**********************************************************************/
+	/************** Create the Vertex Shader and Pixel Shader *************/
 	Microsoft::WRL::ComPtr<ID3DBlob> pBlob;
-
 	Microsoft::WRL::ComPtr<ID3D11PixelShader> pPixelShader;
 	GFX_THROW_INFO(D3DReadFileToBlob(L"PixelShader.cso", &pBlob));
 	GFX_THROW_INFO(pDevice->CreatePixelShader(pBlob->GetBufferPointer(), pBlob->GetBufferSize(), nullptr, &pPixelShader));
-	GFX_THROW_INFO_ONLY(pContext->PSSetShader(pPixelShader.Get(), nullptr, 0u));
 
 	Microsoft::WRL::ComPtr<ID3D11VertexShader> pVertexShader;
 	GFX_THROW_INFO(D3DReadFileToBlob(L"VertexShader.cso", &pBlob));
 	GFX_THROW_INFO(pDevice->CreateVertexShader(pBlob->GetBufferPointer(), pBlob->GetBufferSize(), nullptr, &pVertexShader));
-	GFX_THROW_INFO_ONLY(pContext->VSSetShader(pVertexShader.Get(), nullptr, 0u));
-
+	
+	/****************************************************/
+	/************** Create the Input Layout *************/
 	Microsoft::WRL::ComPtr<ID3D11InputLayout> pInputLayout;
 	D3D11_INPUT_ELEMENT_DESC ied[] =
 	{
@@ -145,8 +145,9 @@ Graphics::Graphics(HWND hWnd)
 		{ "TexCoord", 0u, DXGI_FORMAT_R32G32_FLOAT, 0u, 8u, D3D11_INPUT_PER_VERTEX_DATA, 0u },
 	};
 	GFX_THROW_INFO(pDevice->CreateInputLayout(ied, (UINT)std::size(ied), pBlob->GetBufferPointer(), pBlob->GetBufferSize(), &pInputLayout));
-	pContext->IASetInputLayout(pInputLayout.Get());
-
+	
+	/*************************************************/
+	/************** Create the View Port *************/
 	D3D11_VIEWPORT vp = {};
 	vp.Width          = ScreenWidth;
 	vp.Height         = ScreenHeight;
@@ -154,10 +155,9 @@ Graphics::Graphics(HWND hWnd)
 	vp.TopLeftY       = 0.0f;
 	vp.MaxDepth       = 1.0f;
 	vp.MinDepth       = 0.0f;
-	GFX_THROW_INFO_ONLY(pContext->RSSetViewports(1u, &vp));
 
-	/**********************************************************/
-	/************************ TEXTURE *************************/
+	/*********************************************************/
+	/***************** FRAMEBUFFER TEXTURE *******************/
 	D3D11_TEXTURE2D_DESC texDesc = {};
 	texDesc.Format               = DXGI_FORMAT_B8G8R8A8_UNORM;
 	texDesc.MipLevels            = 1u;
@@ -165,13 +165,17 @@ Graphics::Graphics(HWND hWnd)
 	texDesc.BindFlags            = D3D11_BIND_SHADER_RESOURCE;
 	texDesc.Width                = ScreenWidth;
 	texDesc.Height               = ScreenHeight;
-	texDesc.Usage                = D3D11_USAGE_DYNAMIC;
+	texDesc.Usage                = D3D11_USAGE_DEFAULT;
 	texDesc.CPUAccessFlags       = D3D11_CPU_ACCESS_WRITE;
 	texDesc.SampleDesc.Count     = 1u;
 	texDesc.SampleDesc.Quality   = 0u;
 	texDesc.MiscFlags            = 0u;
-	GFX_THROW_INFO(pDevice->CreateTexture2D(&texDesc, nullptr, &pTexture));
+	D3D11_SUBRESOURCE_DATA srd   = {};
+	srd.pSysMem                  = pBuffer.GetBufferPtrConst();
+	srd.SysMemPitch              = ScreenWidth * sizeof(Color);
+	GFX_THROW_INFO(pDevice->CreateTexture2D(&texDesc, &srd, &pTexture));
 
+	// Creation of the view on the texture
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> pTextureView;
 	D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
 	srvDesc.Format                          = texDesc.Format;
@@ -179,8 +183,10 @@ Graphics::Graphics(HWND hWnd)
 	srvDesc.Texture2D.MostDetailedMip       = 0u;
 	srvDesc.ViewDimension                   = D3D11_SRV_DIMENSION_TEXTURE2D;
 	GFX_THROW_INFO(pDevice->CreateShaderResourceView(pTexture.Get(), &srvDesc, &pTextureView));
-	GFX_THROW_INFO_ONLY(pContext->PSSetShaderResources(0u, 1u, pTextureView.GetAddressOf()));
+	/*********************************************************/
 
+	/*********************************************************/
+	/**************** Create the Sampler State ***************/
 	Microsoft::WRL::ComPtr<ID3D11SamplerState> pSamplerState;
 	D3D11_SAMPLER_DESC samDesc = {};
 	samDesc.AddressU           = D3D11_TEXTURE_ADDRESS_WRAP;
@@ -189,8 +195,20 @@ Graphics::Graphics(HWND hWnd)
 	samDesc.ComparisonFunc     = D3D11_COMPARISON_NEVER;
 	samDesc.Filter             = D3D11_FILTER_MIN_MAG_MIP_POINT;
 	GFX_THROW_INFO(pDevice->CreateSamplerState(&samDesc, &pSamplerState));
+	/**********************************************************/
+
+	/*******************************************************************************************/
+	/******** Bind all the created resources and configurations to the Graphics Pipeline *******/
+	GFX_THROW_INFO_ONLY(pContext->OMSetRenderTargets(1u, pTargetView.GetAddressOf(), nullptr));
+	GFX_THROW_INFO_ONLY(pContext->IASetVertexBuffers(0u, 1u, pVertexBuffer.GetAddressOf(), &strides, &offsets));
+	GFX_THROW_INFO_ONLY(pContext->PSSetShader(pPixelShader.Get(), nullptr, 0u));
+	GFX_THROW_INFO_ONLY(pContext->VSSetShader(pVertexShader.Get(), nullptr, 0u));
+	GFX_THROW_INFO_ONLY(pContext->IASetInputLayout(pInputLayout.Get()));
+	GFX_THROW_INFO_ONLY(pContext->RSSetViewports(1u, &vp));
+	GFX_THROW_INFO_ONLY(pContext->PSSetShaderResources(0u, 1u, pTextureView.GetAddressOf()));
 	GFX_THROW_INFO_ONLY(pContext->PSSetSamplers(0u, 1u, pSamplerState.GetAddressOf()));
 	GFX_THROW_INFO_ONLY(pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST));
+	/*******************************************************************************************/
 }
 
 void Graphics::UpdateFrameStatistics() noexcept
@@ -217,10 +235,10 @@ Graphics::~Graphics()
 	ImGui_ImplDX11_Shutdown();
 }
 
-void Graphics::BeginFrame()
+void Graphics::BeginFrame(unsigned char r, unsigned char g, unsigned char b)
 {
-	pBuffer.Clear({ 0u, 0u, 0u });
-
+	Clear({ r,g,b });
+	
 	// We always do an ImGui NewFrame because of the useful framerate counter 
 	ImGui_ImplDX11_NewFrame();
 	ImGui_ImplWin32_NewFrame();
@@ -233,11 +251,8 @@ void Graphics::EndFrame()
 
 	UpdateFrameStatistics();
 
-	// Update the screen framebuffer
-	D3D11_MAPPED_SUBRESOURCE msr = {};
-	GFX_THROW_INFO(pContext->Map(pTexture.Get(), 0u, D3D11_MAP::D3D11_MAP_WRITE_DISCARD, 0u, &msr));
-	memcpy(msr.pData, pBuffer.GetBufferPtrConst(), ScreenWidth * ScreenHeight * sizeof(Color));
-	pContext->Unmap(pTexture.Get(), 0u);
+	// Update the framebuffer stored in the GPU memory with our color pBuffer 
+	GFX_THROW_INFO_ONLY(pContext->UpdateSubresource(pTexture.Get(), 0u, nullptr, pBuffer.GetBufferPtrConst(), (UINT)pBuffer.GetRowPitch(), 0u));
 
 	// Draw the CPU Frame Buffer
 	GFX_THROW_INFO_ONLY(pContext->Draw(6u, 0u));
@@ -320,13 +335,13 @@ Graphics::HrException::HrException(int line, const char* file, HRESULT hr, std::
 	Exception(line, file),
 	hr(hr)
 {
-	// join all info messages with newlines into single string
+	// Join all info messages with newlines into single string
 	for (const auto& m : infoMsgs)
 	{
 		info += m;
 		info.push_back('\n');
 	}
-	// remove final newline if exists
+	// Remove final newline if exists
 	if (!info.empty())
 	{
 		info.pop_back();

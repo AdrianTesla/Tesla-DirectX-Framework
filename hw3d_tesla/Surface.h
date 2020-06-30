@@ -52,6 +52,8 @@ public:
 	Color* GetBufferPtr() const noexcept;
     // Get a constant pointer to the color buffer
 	const Color* GetBufferPtrConst() const noexcept;
+	// Get the Row Pitch in bytes
+	unsigned int GetRowPitch() const noexcept;
     // Get the number bytes in the Surface
     unsigned int GetBufferSize() const noexcept;
     // Get the number of Pixels in the Surface

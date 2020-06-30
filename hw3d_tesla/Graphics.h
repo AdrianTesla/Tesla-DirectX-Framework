@@ -1,13 +1,11 @@
 #pragma once
 #include "TeslaWin.h"
 #include "TeslaException.h"
-#include <d3d11.h>
-#include <wrl.h>
-#include <vector>
-#include <sstream>
 #include "DxgiInfoManager.h"
 #include "Surface.h"
-#include "TeslaTimer.h"
+#include <d3d11.h>
+#include <wrl.h>
+#include <sstream>
 
 class Graphics
 {
@@ -55,7 +53,7 @@ public:
 	Graphics& operator = (const Graphics&) = delete;
 	~Graphics();
 public:
-	void BeginFrame();
+	void BeginFrame(unsigned char r = 0u, unsigned char g = 0u, unsigned char b = 0u);
 	void EndFrame();
 	void Clear(Color fillColor) noexcept;
 	void EnableVSync() noexcept;
@@ -70,21 +68,21 @@ public:
 	std::string GetFrameStatistics() const noexcept;
 	void UpdateFrameStatistics() noexcept;
 private:
-	bool imGuiEnabled = false;
-	UINT syncInterval = 0u;
+	bool imGuiEnabled = true;
+	UINT syncInterval = 1u;
 	std::string statsInfo;
 	std::string title = "Adrian Tesla DirectX Framework";
+private:
+	Microsoft::WRL::ComPtr<ID3D11Device>           pDevice;
+	Microsoft::WRL::ComPtr<ID3D11DeviceContext>    pContext;
+	Microsoft::WRL::ComPtr<IDXGISwapChain>         pSwapChain;
+	Microsoft::WRL::ComPtr<ID3D11RenderTargetView> pTargetView;
+	Microsoft::WRL::ComPtr<ID3D11Texture2D>        pTexture;
+	D3D11_MAPPED_SUBRESOURCE msr;
 private:
 #ifndef NDEBUG
 	DxgiInfoManager infoManager;
 #endif
-private:
-	Microsoft::WRL::ComPtr<ID3D11Device>           pDevice;
-	Microsoft::WRL::ComPtr<ID3D11DeviceContext>    pContext;
-private:
-	Microsoft::WRL::ComPtr<IDXGISwapChain>         pSwapChain;
-	Microsoft::WRL::ComPtr<ID3D11RenderTargetView> pTargetView;
-	Microsoft::WRL::ComPtr<ID3D11Texture2D>        pTexture;
 private:
 	Surface pBuffer;
 public:

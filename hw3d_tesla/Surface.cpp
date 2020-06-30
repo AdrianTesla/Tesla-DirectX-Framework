@@ -97,6 +97,11 @@ const Color* Surface::GetBufferPtrConst() const noexcept
 	return pBuffer.get();
 }
 
+unsigned int Surface::GetRowPitch() const noexcept
+{
+	return width * sizeof(Color);
+}
+
 unsigned int Surface::GetBufferSize() const noexcept
 {
 	return width * height * sizeof(Color);
