@@ -31,8 +31,8 @@ Graphics::Graphics(HWND hWnd)
 	// The graphics is initialized filling the pDevice, pContext and pSwapChain pointers.
 	// First we configure the Swap Chain descriptor, passing also the handle to the window
 	DXGI_SWAP_CHAIN_DESC swapDesc = {};
-	swapDesc.BufferDesc.Width                   = 0u;
-	swapDesc.BufferDesc.Height                  = 0u;
+	swapDesc.BufferDesc.Width                   = ScreenWidth;
+	swapDesc.BufferDesc.Height                  = ScreenHeight;
 	swapDesc.BufferDesc.Format                  = DXGI_FORMAT_R8G8B8A8_UNORM;
 	swapDesc.BufferDesc.RefreshRate.Numerator   = 0u;
 	swapDesc.BufferDesc.RefreshRate.Denominator = 0u;
@@ -75,7 +75,7 @@ Graphics::Graphics(HWND hWnd)
 	));
 
 	// In order to clear the back buffer (a texture subresource), we need a view on that (pTargetView will be filled)
-	Microsoft::WRL::ComPtr<ID3D11Texture2D> pBackBuffer;
+	Microsoft::WRL::ComPtr<ID3D11Resource> pBackBuffer;
 	GFX_THROW_INFO(pSwapChain->GetBuffer(0u, __uuidof(ID3D11Texture2D), &pBackBuffer));
 	GFX_THROW_INFO(pDevice->CreateRenderTargetView(pBackBuffer.Get(), nullptr, &pTargetView));
 
@@ -166,7 +166,7 @@ Graphics::Graphics(HWND hWnd)
 	texDesc.Width                = ScreenWidth;
 	texDesc.Height               = ScreenHeight;
 	texDesc.Usage                = D3D11_USAGE_DEFAULT;
-	texDesc.CPUAccessFlags       = D3D11_CPU_ACCESS_WRITE;
+	texDesc.CPUAccessFlags       = 0u;
 	texDesc.SampleDesc.Count     = 1u;
 	texDesc.SampleDesc.Quality   = 0u;
 	texDesc.MiscFlags            = 0u;

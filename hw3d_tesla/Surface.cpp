@@ -242,7 +242,7 @@ Surface::GDIPlusManager::GDIPlusManager()
 		input.GdiplusVersion = 1u;
 		input.DebugEventCallback = nullptr;
 		input.SuppressBackgroundThread = false;
-		Gdiplus::GdiplusStartup(&token, &input, nullptr);
+		Gdiplus::GdiplusStartup(reinterpret_cast<ULONG_PTR*>(&token), &input, nullptr);
 	}
 }
 
