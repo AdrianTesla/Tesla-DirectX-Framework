@@ -22,5 +22,4 @@ void Game::UpdateModel()
 
 void Game::ComposeFrame()
 {
-	gfx.PutPixel(400, 300, Color::Azure);
 }
