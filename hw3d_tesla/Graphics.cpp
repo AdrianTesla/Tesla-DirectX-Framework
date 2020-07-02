@@ -7,6 +7,9 @@
 #pragma comment(lib, "d3d11.lib")
 #pragma comment(lib, "d3dcompiler.lib")
 
+#include <chrono>
+#include <fstream>
+
 // graphics exception checking/throwing macros (some with dxgi infos)
 #define GFX_EXCEPT_NOINFO(hr) Graphics::HrException( __LINE__,__FILE__,(hr) )
 #define GFX_THROW_NOINFO(hrcall) if( FAILED( hr = (hrcall) ) ) throw Graphics::HrException( __LINE__,__FILE__,hr )
@@ -127,15 +130,50 @@ Graphics::Graphics(HWND hWnd)
 	
 	/**********************************************************************/
 	/************** Create the Vertex Shader and Pixel Shader *************/
+
+	// We compile the shaders at runtime with D3DCompile so the final .exe doesn't need the shaders binary dependencies
+
+	// Vertex Shader HLSL (High Level Shader Language) code
+	static const char* vertexShader =
+		"\
+		struct VSOut\
+		{\
+			float2 tc : TexCoord;\
+			float4 pos : SV_Position;\
+		};\
+		\
+		VSOut main(float2 pos : Position, float2 tc : TexCoord)\
+		{\
+			VSOut v;\
+			\
+			v.pos = float4(pos.x, pos.y, 0.0f, 1.0f);\
+			v.tc = tc;\
+			\
+			return v;\
+		};\
+		";
+
+	// Pixel Shader HLSL (High Level Shader Language) code
+	static const char* pixelShader = 
+		"\
+		Texture2D tex : register(t0);\
+		SamplerState splr;\
+		\
+		float4 main(float2 tc : TexCoord) : SV_Target\
+		{\
+			return tex.Sample(splr, tc);\
+		}\
+		";
+
 	Microsoft::WRL::ComPtr<ID3DBlob> pBlob;
 	Microsoft::WRL::ComPtr<ID3D11PixelShader> pPixelShader;
-	GFX_THROW_INFO(D3DReadFileToBlob(L"PixelShader.cso", &pBlob));
+	GFX_THROW_INFO(D3DCompile(pixelShader, strlen(pixelShader), nullptr, nullptr, nullptr, "main", "ps_4_0", 0u, 0u, &pBlob, nullptr));
 	GFX_THROW_INFO(pDevice->CreatePixelShader(pBlob->GetBufferPointer(), pBlob->GetBufferSize(), nullptr, &pPixelShader));
 
 	Microsoft::WRL::ComPtr<ID3D11VertexShader> pVertexShader;
-	GFX_THROW_INFO(D3DReadFileToBlob(L"VertexShader.cso", &pBlob));
+	GFX_THROW_INFO(D3DCompile(vertexShader, strlen(vertexShader), nullptr, nullptr, nullptr, "main", "vs_4_0", 0u, 0u, &pBlob, nullptr));
 	GFX_THROW_INFO(pDevice->CreateVertexShader(pBlob->GetBufferPointer(), pBlob->GetBufferSize(), nullptr, &pVertexShader));
-	
+
 	/****************************************************/
 	/************** Create the Input Layout *************/
 	Microsoft::WRL::ComPtr<ID3D11InputLayout> pInputLayout;
@@ -195,7 +233,7 @@ Graphics::Graphics(HWND hWnd)
 	samDesc.ComparisonFunc     = D3D11_COMPARISON_NEVER;
 	samDesc.Filter             = D3D11_FILTER_MIN_MAG_MIP_POINT;
 	GFX_THROW_INFO(pDevice->CreateSamplerState(&samDesc, &pSamplerState));
-	/**********************************************************/
+	/*********************************************************/
 
 	/*******************************************************************************************/
 	/******** Bind all the created resources and configurations to the Graphics Pipeline *******/
