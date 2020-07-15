@@ -65,7 +65,7 @@ Window::Window(int width, int height, const char* title, int pos_x, int pos_y)
 	hWnd = CreateWindow(
 		WindowClass::GetName(),
 		title,
-		WS_CAPTION | WS_MINIMIZEBOX | WS_SYSMENU | WS_MAXIMIZEBOX | WS_SIZEBOX,
+		WS_CAPTION | WS_MINIMIZEBOX | WS_SYSMENU,// | WS_MAXIMIZEBOX, // | WS_SIZEBOX, <-- resizable?
 		pos_x,
 		pos_y,
 		wr.right - wr.left,

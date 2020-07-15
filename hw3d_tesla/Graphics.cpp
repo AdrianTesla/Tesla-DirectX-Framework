@@ -59,7 +59,7 @@ Graphics::Graphics(HWND hWnd)
 
 	/******************** D3D11 DEVICE AND SWAPCHAIN *********************/
 	// And we fill the pipi: this is the official birth of the D3D11 Device
-	GFX_THROW_INFO( D3D11CreateDeviceAndSwapChain(
+	GFX_THROW_INFO(D3D11CreateDeviceAndSwapChain(
 		nullptr,
 		D3D_DRIVER_TYPE_HARDWARE, // (use D3D_DRIVER_TYPE_WARP for software implementation)
 		nullptr,
@@ -132,35 +132,35 @@ Graphics::Graphics(HWND hWnd)
 
 	// Vertex Shader HLSL (High Level Shader Language) code
 	static const char* vertexShader =
-		"\
-		struct VSOut\
-		{\
-			float2 tc : TexCoord;\
-			float4 pos : SV_Position;\
-		};\
-		\
-		VSOut main(float2 pos : Position, float2 tc : TexCoord)\
-		{\
-			VSOut v;\
-			\
-			v.pos = float4(pos.x, pos.y, 0.0f, 1.0f);\
-			v.tc = tc;\
-			\
-			return v;\
-		};\
-		";
+"\
+struct VSOut\
+{\
+	float2 tc : TexCoord;\
+	float4 pos : SV_Position;\
+};\
+\
+VSOut main(float2 pos : Position, float2 tc : TexCoord)\
+{\
+	VSOut v;\
+	\
+	v.pos = float4(pos.x, pos.y, 0.0f, 1.0f);\
+	v.tc = tc;\
+	\
+	return v;\
+};\
+";
 
 	// Pixel Shader HLSL (High Level Shader Language) code
 	static const char* pixelShader = 
-		"\
-		Texture2D tex : register(t0);\
-		SamplerState splr;\
-		\
-		float4 main(float2 tc : TexCoord) : SV_Target\
-		{\
-			return tex.Sample(splr, tc);\
-		}\
-		";
+"\
+Texture2D tex : register(t0);\
+SamplerState splr;\
+\
+float4 main(float2 tc : TexCoord) : SV_Target\
+{\
+	return tex.Sample(splr, tc);\
+}\
+";
 
 	Microsoft::WRL::ComPtr<ID3DBlob> pBlob;
 	Microsoft::WRL::ComPtr<ID3D11PixelShader> pPixelShader;
@@ -250,13 +250,11 @@ void Graphics::UpdateFrameStatistics() noexcept
 {
 	const auto ImGuiIO    = ImGui::GetIO();
 	const auto frame_rate = ImGuiIO.Framerate;
-	const auto width      = ImGuiIO.DisplaySize.x;
-	const auto height     = ImGuiIO.DisplaySize.y;
 	std::stringstream ss;
 	ss.precision(3);
 	ss << std::fixed << 1000.0f / frame_rate;
 	ss.precision(0);
-	ss << std::fixed << " ms/frame (" << frame_rate << " FPS)] (" << width << "x" << height << ")";
+	ss << std::fixed << " ms/frame (" << frame_rate << " FPS)] (" << ScreenWidth << "x" << ScreenHeight << ")";
 	statsInfo = ss.str();
 }
 

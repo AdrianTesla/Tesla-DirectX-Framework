@@ -66,6 +66,7 @@ public:
 	void PutPixel(unsigned int x, unsigned int y, Color c);
 	void PutPixel(unsigned int x, unsigned int y, unsigned int r, unsigned int g, unsigned int b);
 	std::string GetFrameStatistics() const noexcept;
+private:
 	void UpdateFrameStatistics() noexcept;
 private:
 	bool imGuiEnabled = true;
@@ -83,7 +84,7 @@ private:
 #ifndef NDEBUG
 	DxgiInfoManager infoManager;
 #endif
-private:
+public:
 	Surface pBuffer;
 public:
 	static constexpr unsigned int ScreenWidth  = 800u;
