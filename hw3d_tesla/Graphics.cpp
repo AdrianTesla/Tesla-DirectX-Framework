@@ -31,8 +31,8 @@ Graphics::Graphics(HWND hWnd)
 	// The graphics is initialized filling the pDevice, pContext and pSwapChain pointers.
 	// First we configure the Swap Chain descriptor, passing also the handle to the window
 	DXGI_SWAP_CHAIN_DESC swapDesc = {};
-	swapDesc.BufferDesc.Width                   = ScreenWidth;
-	swapDesc.BufferDesc.Height                  = ScreenHeight;
+	swapDesc.BufferDesc.Width                   = ScreenWidth  * PixelSize;
+	swapDesc.BufferDesc.Height                  = ScreenHeight * PixelSize;
 	swapDesc.BufferDesc.Format                  = DXGI_FORMAT_R8G8B8A8_UNORM;
 	swapDesc.BufferDesc.RefreshRate.Numerator   = 0u;
 	swapDesc.BufferDesc.RefreshRate.Denominator = 0u;
@@ -184,8 +184,8 @@ float4 main(float2 tc : TexCoord) : SV_Target\
 	/*************************************************/
 	/************** Create the View Port *************/
 	D3D11_VIEWPORT vp = {};
-	vp.Width          = ScreenWidth;
-	vp.Height         = ScreenHeight;
+	vp.Width          = ScreenWidth * PixelSize;
+	vp.Height         = ScreenHeight * PixelSize;
 	vp.TopLeftX       = 0.0f;
 	vp.TopLeftY       = 0.0f;
 	vp.MaxDepth       = 1.0f;

@@ -87,6 +87,7 @@ private:
 public:
 	Surface pBuffer;
 public:
+	static constexpr unsigned int PixelSize    = 1u;
 	static constexpr unsigned int ScreenWidth  = 800u;
 	static constexpr unsigned int ScreenHeight = 600u;
 };
