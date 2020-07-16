@@ -1,5 +1,6 @@
 #include "TeslaWin.h"
 #include "Mouse.h"
+#include "Graphics.h"
 
 std::pair<int, int> Mouse::GetPos() const noexcept
 {
@@ -19,12 +20,22 @@ std::optional<Mouse::RawDelta> Mouse::ReadRawDelta() noexcept
 
 int Mouse::GetPosX() const noexcept
 {
-	return x;
+	return x / Graphics::PixelSize;
 }
 
 int Mouse::GetPosY() const noexcept
 {
-	return y;
+	return y / Graphics::PixelSize;
+}
+
+float Mouse::GetPosXf() const noexcept
+{
+	return float(x) / float(Graphics::PixelSize);
+}
+
+float Mouse::GetPosYf() const noexcept
+{
+	return float(y) / float(Graphics::PixelSize);
 }
 
 bool Mouse::LeftIsPressed() const noexcept

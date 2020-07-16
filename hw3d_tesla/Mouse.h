@@ -96,6 +96,8 @@ public:
 	std::optional<RawDelta> ReadRawDelta() noexcept;
 	int GetPosX() const noexcept;
 	int GetPosY() const noexcept;
+	float GetPosXf() const noexcept;
+	float GetPosYf() const noexcept;
 	bool LeftIsPressed() const noexcept;
 	bool RightIsPressed() const noexcept;
 	bool IsInWindow() const noexcept;
