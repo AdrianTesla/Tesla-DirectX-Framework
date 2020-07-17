@@ -63,6 +63,7 @@ public:
 	void EnableImGui() noexcept;
 	void DisableImGui() noexcept;
 	bool IsImGuiEnabled() const noexcept;
+	void PutPixel(const std::pair<unsigned int, unsigned int>& p, Color c);
 	void PutPixel(unsigned int x, unsigned int y, Color c);
 	void PutPixel(unsigned int x, unsigned int y, unsigned int r, unsigned int g, unsigned int b);
 	std::string GetFrameStatistics() const noexcept;

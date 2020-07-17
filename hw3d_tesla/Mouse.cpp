@@ -4,7 +4,12 @@
 
 std::pair<int, int> Mouse::GetPos() const noexcept
 {
-	return { x,y };
+	return { GetPosX(),GetPosY() };
+}
+
+std::pair<float, float> Mouse::GetPosF() const noexcept
+{
+	return { GetPosXf(),GetPosYf() };
 }
 
 std::optional<Mouse::RawDelta> Mouse::ReadRawDelta() noexcept

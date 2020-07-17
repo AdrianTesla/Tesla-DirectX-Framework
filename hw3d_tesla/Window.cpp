@@ -85,9 +85,9 @@ Window::Window(int width, int height, const char* title, int pos_x, int pos_y)
 	// Register a Mouse RAW input device, so we can get WM_INPUT data
 	RAWINPUTDEVICE raw_device;
 	raw_device.usUsagePage = 0x01;
-	raw_device.usUsage = 0x02;
-	raw_device.dwFlags = 0;
-	raw_device.hwndTarget = nullptr;
+	raw_device.usUsage     = 0x02;
+	raw_device.dwFlags     = 0;
+	raw_device.hwndTarget  = nullptr;
 	if (RegisterRawInputDevices(&raw_device, 1u, sizeof(raw_device)) == FALSE)
 	{
 		throw TESLA_WND_LAST_EXCEPT();

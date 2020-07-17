@@ -355,6 +355,11 @@ bool Graphics::IsImGuiEnabled() const noexcept
 	return imGuiEnabled;
 }
 
+void Graphics::PutPixel(const std::pair<unsigned int, unsigned int>& p, Color c)
+{
+	PutPixel(p.first, p.second, c);
+}
+
 void Graphics::PutPixel(unsigned int x, unsigned int y, Color c)
 {
 	pBuffer.PutPixel(x, y, c);

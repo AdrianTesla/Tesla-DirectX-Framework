@@ -7,7 +7,7 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	try
 	{
 		// Create a game object
-		Game gameEngine;
+		Game game;
 		// Start the game loop
 		while (true)
 		{
@@ -17,7 +17,7 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 				return *error_code;
 			}
 			// Do a frame composition
-			gameEngine.Go();
+			game.Go();
 		}
 	}
 	catch (const TeslaException& e)

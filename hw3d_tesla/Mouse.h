@@ -93,6 +93,7 @@ public:
 	Mouse(const Mouse&) = delete;
 	Mouse& operator = (const Mouse&) = delete;
 	std::pair<int, int> GetPos() const noexcept;
+	std::pair<float, float> GetPosF() const noexcept;
 	std::optional<RawDelta> ReadRawDelta() noexcept;
 	int GetPosX() const noexcept;
 	int GetPosY() const noexcept;
