@@ -63,6 +63,8 @@ public:
 	void EnableImGui() noexcept;
 	void DisableImGui() noexcept;
 	bool IsImGuiEnabled() const noexcept;
+	Color* GetFramebufferPtr() const noexcept;
+	const Color* GetFramebufferPtrConst() const noexcept;
 	void PutPixel(const std::pair<unsigned int, unsigned int>& p, Color c);
 	void PutPixel(unsigned int x, unsigned int y, Color c);
 	void PutPixel(unsigned int x, unsigned int y, unsigned int r, unsigned int g, unsigned int b);
@@ -85,7 +87,7 @@ private:
 #ifndef NDEBUG
 	DxgiInfoManager infoManager;
 #endif
-public:
+private:
 	Surface pBuffer;
 public:
 	static constexpr unsigned int PixelSize    = 1u;

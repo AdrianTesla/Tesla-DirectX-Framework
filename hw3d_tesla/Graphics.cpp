@@ -355,6 +355,16 @@ bool Graphics::IsImGuiEnabled() const noexcept
 	return imGuiEnabled;
 }
 
+Color* Graphics::GetFramebufferPtr() const noexcept
+{
+	return pBuffer.GetBufferPtr();
+}
+
+const Color* Graphics::GetFramebufferPtrConst() const noexcept
+{
+	return pBuffer.GetBufferPtrConst();
+}
+
 void Graphics::PutPixel(const std::pair<unsigned int, unsigned int>& p, Color c)
 {
 	PutPixel(p.first, p.second, c);

@@ -61,19 +61,19 @@ void Surface::Clear(Color fillvalue) noexcept
 
 void Surface::PutPixel(unsigned int x, unsigned int y, Color c) noexcept
 {
-	assert(x >= 0u);
-	assert(x < width);
-	assert(y >= 0u);
-	assert(y < height);
+	assert(x >= 0u && "Attempting to draw outside the surface");
+	assert(x < width && "Attempting to draw outside the surface");
+	assert(y >= 0u && "Attempting to draw outside the surface");
+	assert(y < height && "Attempting to draw outside the surface");
 	pBuffer[x + (size_t)width * y] = c;
 }
 
 Color Surface::Sample(unsigned int x, unsigned int y) const noexcept
 {
-	assert(x >= 0u);
-	assert(x < width);
-	assert(y >= 0u);
-	assert(y < height);
+	assert(x >= 0u && "Attempting sample outside the surface");
+	assert(x < width && "Attempting sample outside the surface");
+	assert(y >= 0u && "Attempting sample outside the surface");
+	assert(y < height && "Attempting sample outside the surface");
 	return pBuffer[x + (size_t)width * y];
 }
 
@@ -122,7 +122,7 @@ Surface Surface::FromFile(const std::string& filename)
 
 	// Load the bitmap from the provided filename
 	Gdiplus::Bitmap bitmap(wfilename.c_str());
-
+	
 	// Check for errors
 	const auto gdiStatus = bitmap.GetLastStatus();
 	if (gdiStatus == Gdiplus::Status::GdiplusNotInitialized)
@@ -164,7 +164,7 @@ void Surface::Save(const std::string& filename) const
 {
 	GDIPlusManager gdipm;
 
-	// Some mysteries right here. Not easy stuff
+	// Not so easy stuff.
 	auto GetEncoderClsid = [&filename](const WCHAR* format, CLSID* pClsid) -> void
 	{
 		UINT  num = 0;          // Number of image encoders
